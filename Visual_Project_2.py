@@ -1,6 +1,7 @@
 import numpy as np
 import matplotlib.pyplot as plt
- 
+import random
+
 class Class:
 	def __init__(self, label, numOfSpecification=1):
 		self.dataList = []
@@ -72,7 +73,7 @@ def DataClassification(dataList, classList):
 ############################################ Plot Function #############################################
  
 def PlotData(classList):
-	shape = ['ro', 'bo', 'go']
+	shape = ['ro', 'bo', 'go'] #class1 = red, class2 = blue, class3 = green
 	j=0
 	for _class in classList:
 		list = _class.GetDataList()
@@ -84,26 +85,69 @@ def PlotData(classList):
  
  
 ############################################ Perceptron Algorithm ######################################
- 
- 
-def CalculatePerceptron(classList, num1, num2):
+
+def ActivationFunction(value, threshold):
+	if(value >= threshold):
+		return 1
+	return 0
+
+def UpdateWeightvector(w, learningRate, data, targetValue, result):
+	j=0
+	w[0] = w[0] + learningRate * data[0] * (targetValue - result)
+	w[1] = w[2] + learningRate * data[1] * (targetValue - result)
+	w[2] = w[2] + learningRate * data[2] * (targetValue - result)
+	print(w)
+	return w
+
+def CalculatePerceptron(classList, num1, num2, learningRate, threshold):
 	dataList1 = classList[num1].GetDataList()
 	dataList2 = classList[num2].GetDataList()
-	w1 = []
-	w2 = []
-	
-	for i in classList[num1].GetNumOfData():
-		temp = [1]
-		temp += dataList1[i]
-		temp = np.transpose(np.array(temp))
-		sum = np.dot(w1,temp)
-		
-	for i in classList[num2].GetNumOfData():
-		temp = [1]
-		temp += dataList2[i]
-		temp = np.transpose(np.array(temp))
-		sum = np.dot(w1,temp)
- 
+	w = [-2, 1, 1]
+	epoch = 0
+	sum = 0
+
+#	for i in dataList1[0]:
+#		w.append(random.uniform(-0.5, 0.5))
+
+
+	print("initial value of Weight Vector" + str(w))
+
+	while(True):
+		# Learning
+		errorCount = 0
+		for i in range(classList[num1].GetNumOfData()):
+			temp = [1]
+			temp += dataList1[i]
+			temp = np.transpose(np.array(temp))
+			sum = np.dot(w, temp)
+			result = ActivationFunction(sum, threshold)
+			if(result == 0):
+				#targetvalue == 1
+				w = UpdateWeightvector(w,learningRate,temp,1,result)
+				errorCount+=1
+
+		for i in range(classList[num2].GetNumOfData()):
+			temp = [1]
+			temp += dataList2[i]
+			temp = np.transpose(np.array(temp))
+			sum = np.dot(w, temp)
+			result = ActivationFunction(sum, threshold)
+			if(result == 1):
+				#targetvalue == 0
+				w = UpdateWeightvector(w, learningRate, temp, 0, result)
+				errorCount+=1
+		print("epoch is >> " + str(epoch))
+		print("errorcount is >> " + str(errorCount))
+		print("weight is >> " + str(w))
+ 		if(errorCount == 0):
+			print("finished Classification")
+			print("epoch is >>  " + str(epoch))
+			print("weight Vector is >>  " + str(w))
+			#TODO plot
+			break
+
+
+		epoch += 1
  
  
 ############################################ main #############################################
@@ -111,9 +155,12 @@ def CalculatePerceptron(classList, num1, num2):
 TRAIN_DATA = "train_data.txt"
 NUMOFCLASSES = 3
 NUMOFSPECIFICATION = 2
+LEARNINGRATE = 0.05
  
 trainDataList = ReadData(TRAIN_DATA)
 classList = [Class(i + 1, NUMOFSPECIFICATION) for i in range(NUMOFCLASSES)]
  
 DataClassification(trainDataList, classList)
 PlotData(classList)
+
+CalculatePerceptron(classList, 1, 2, LEARNINGRATE, 1.0)
